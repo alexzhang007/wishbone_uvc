@@ -1,0 +1,8 @@
+$PROJ_TOP/example/rtl/wishbone_slave.v
++incdir+$PROJ_TOP/example/sample001
++incdir+$PROJ_TOP/uvm
+$PROJ_TOP/uvm/wishbone_interface.sv
+$PROJ_TOP/uvm/wishbone_pkg.sv
+$PROJ_TOP/example/sample001/test_param_pkg.sv
+$PROJ_TOP/example/sample001/test_pkg.sv
+$PROJ_TOP/example/sample001/tb.sv
