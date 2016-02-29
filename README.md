@@ -3,12 +3,12 @@ Wishbone protocol open source universal verification component (UVC). It is easy
 
 # wishbone_usage
 Wishbone package can be nested in your own package such as:  
-package soc_package;  
-  import wishbone_pkg::*;  
-  ...  
-  ...  
-    
-endpackage    
+    package soc_package;  
+      import wishbone_pkg::*;  
+      ...  
+      ...  
+         
+    endpackage    
 
 # wishbone_install
 Wishbone package is not included the Makefile that can be used in large scale SoC verification environment, if need it, please send email to me (cgzhangwei@gmail.com)
