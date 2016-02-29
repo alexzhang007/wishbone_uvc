@@ -3,6 +3,7 @@ Wishbone protocol open source universal verification component (UVC). It is easy
 
 # wishbone_usage
 Wishbone package can be nested in your own package such as:  
+
     package soc_package;  
       import wishbone_pkg::*;  
       ...  
