@@ -13,7 +13,8 @@ endpackage
 # wishbone_install
 Wishbone package is not included the Makefile that can be used in large scale SoC verification environment, if need it, please send email to me (cgzhangwei@gmail.com)
 
-//*******************************************************************   
+# wishbone_uvc copyright@
+//************************************************************************************   
 // Copyright 2016 Opening Vision  (Shanghai) Inc and the Author  
 // All Rights Reserved.  
 // THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION WHICH IS THE PROPERTY OF  
@@ -23,7 +24,7 @@ Wishbone package is not included the Makefile that can be used in large scale So
 //  Version  : 2.3    
 //  Author   : Alex Zhang   
 //  Date     : 02-26-2016    
-// (begin source code)   
+//************************************************************************************   
 
 
 
