@@ -28,7 +28,7 @@ class wb_master_rw_transaction#(
   rand wb_cti_type_e         cti;
   rand wb_bte_type_e         bte;
   rand bit [WB_ADDR_W-1:0]   addr_bursts[];
-  rand bit [2:0]             cti_bursts[];
+  rand wb_cti_type_e         cti_bursts[];
 
   rand wb_rw_e               read_or_write;
   rand int                   len_bursts; //if the request is not classic, it will have the parameter
@@ -38,9 +38,12 @@ class wb_master_rw_transaction#(
   //The uvm_field_int has the sprint work
   `uvm_object_param_utils_begin(wb_master_rw_transaction)
      `uvm_field_int(delay, UVM_DEFAULT)
+     `uvm_field_int(len_bursts, UVM_DEFAULT)
      `uvm_field_int(addr, UVM_DEFAULT)
+     `uvm_field_sarray_int(addr_bursts, UVM_DEFAULT)
      `uvm_field_enum(wb_rw_e,  read_or_write, UVM_DEFAULT)
      `uvm_field_enum(wb_cti_type_e,  cti, UVM_DEFAULT)
+     `uvm_field_sarray_enum(wb_cti_type_e, cti_bursts, UVM_DEFAULT)
      `uvm_field_enum(wb_bte_type_e,  bte, UVM_DEFAULT)
      `uvm_field_sarray_int(data, UVM_DEFAULT)
      `uvm_field_sarray_int(sel, UVM_DEFAULT)
@@ -64,34 +67,34 @@ class wb_master_rw_transaction#(
   }
 
   function void post_randomize ();
+    addr [2:0] = 3'b000; //Make sure the address is 8bit aligned
     begin 
       if (read_or_write == WB_WRITE) begin
         if (cti == WB_CONST_ADDR_CYCLE) begin  
-          for (int index =0; index < len_bursts-1; index = index +1) begin 
+          for (int index =0; index < len_bursts; index = index +1) begin 
             cti_bursts [index] = WB_CONST_ADDR_CYCLE;
             addr_bursts[index] = addr;
           end 
           cti_bursts[len_bursts-1] = WB_END_OF_BURST;
-          addr_bursts[len_bursts-1]= addr;
         end else if (cti == WB_INCR_ADDR_CYCLE) begin 
           if (bte == WB_LINEAR_BURST) begin 
-            for (int i =0; i< len_bursts-1; i= i+1) begin 
+            for (int i =0; i< len_bursts; i= i+1) begin 
               addr_bursts[i] = addr + i*4;
               cti_bursts[i]  = cti;
             end 
           end else if (bte == WB_4BEAT_WRAPPER_BURST) begin 
-            for (int i=0; i< len_bursts-1; i=i+1) begin 
-              addr_bursts [i] = addr + i%4;
+            for (int i=0; i< len_bursts; i=i+1) begin 
+              addr_bursts [i] = addr + (i%4) * 4;
               cti_bursts[i]  = cti;
             end 
           end else if (bte == WB_8BEAT_WRAPPER_BURST) begin 
-            for (int i=0; i< len_bursts-1; i=i+1) begin 
-              addr_bursts [i] = addr + i%8;
+            for (int i=0; i< len_bursts; i=i+1) begin 
+              addr_bursts [i] = addr + (i%8) * 8;
               cti_bursts[i]  = cti;
             end 
           end else if (bte == WB_8BEAT_WRAPPER_BURST) begin 
-            for (int i=0; i< len_bursts-1; i=i+1) begin 
-              addr_bursts [i] = addr + i%16;
+            for (int i=0; i< len_bursts; i=i+1) begin 
+              addr_bursts [i] = addr + (i%16) * 16;
               cti_bursts[i]  = cti;
             end 
           end 
