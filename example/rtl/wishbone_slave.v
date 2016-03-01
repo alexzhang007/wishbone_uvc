@@ -19,9 +19,9 @@ parameter WB_TGA_W  = 2
 )(
 input                    RST_I,
 input                    CLK_I,
-input [WB_DATA_W-1:0]    DAT_O,
+output [WB_DATA_W-1:0]   DAT_O,
 input [WB_ADDR_W-1:0]    ADR_I,
-output[WB_DATA_W-1:0]    DAT_I,
+input [WB_DATA_W-1:0]    DAT_I,
 input [WB_DATA_W/8-1:0]  SEL_I,
 input                    WE_I ,
 input                    STB_I,
@@ -32,23 +32,40 @@ output                   ERR_O,
 input                    LOCK_I,
 output                   RTY_O,
 input [WB_TGA_W-1:0]     TGA_I,
-input [WB_TGC_W-1:0]     TGC_I
+input [WB_TGC_W-1:0]     TGC_I,
+input [2:0]              CTI_I,
+input [1:0]              BTE_I
 );
 
 assign ERR_O = 1'b0;
 assign DAT_O = 'h0;
 assign RTY_O = 1'b0;
 
-reg  ack_r;
+parameter ACK_IDLE = 1'b0,
+          ACK_BUSY = 1'b1;
+
+reg  ack_ns, ack_cs;
+
 always @(posedge CLK_I or negedge RST_I)
   if (~RST_I)
-    ack_r <= 1'b0;
+    ack_cs <= ACK_IDLE;
   else 
-    if (WE_I & STB_I)
-      ack_r <= 1'b1;
-    else 
-      ack_r <= 1'b0;
+    ack_cs <= ack_ns;
 
-assign ACK_O = ack_r;
+always @(*)
+  case (ack_cs) 
+    ACK_IDLE : begin 
+                 if (WE_I & STB_I)
+                   ack_ns = ACK_BUSY;
+                 else
+                   ack_ns = ACK_IDLE;
+    end 
+    ACK_BUSY  : begin 
+                  ack_ns = ACK_IDLE;
+    end 
+    default   : ack_ns = ACK_IDLE;
+    endcase
+
+assign ACK_O = ack_cs == ACK_BUSY;
 
 endmodule 
