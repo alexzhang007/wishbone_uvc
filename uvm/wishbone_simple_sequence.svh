@@ -59,6 +59,87 @@ class wb_master_simple_sequence #(
     end 
 
   endtask
-endclass
+endclass : wb_master_simple_sequence
+
+
+//Date   : 03-01-2016
+//Author : Alex Zhang
+//Comment: Constant address mode sequence
+class wb_master_const_addr_sequence #(
+  int WB_ADDR_W = 32,
+  int WB_DATA_W = 32,
+  int WB_TGD_W  = 8,
+  int WB_TGA_W  = 4,
+  int WB_TGC_W  = 2
+) extends wb_master_simple_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W);
+
+  typedef wb_master_const_addr_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  this_t;
+  `uvm_object_param_utils(this_t)
+
+  function new(string name = "wb_master_const_addr_sequence");
+    super.new(name);
+  endfunction
+
+  task body ();
+    wb_master_rw_txn_t wr_txn = wb_master_rw_txn_t::type_id::create("wr_txn");
+    for (int i=0; i< req_num ; i= i+1) begin 
+       start_item(wr_txn);
+       if (!wr_txn.randomize() with { 
+                                      wr_txn.read_or_write == WB_WRITE             ;
+                                      wr_txn.len_bursts    == 5                    ;
+                                      wr_txn.addr inside {[start_addr : end_addr]} ;
+                                      wr_txn.cti           == WB_CONST_ADDR_CYCLE  ;
+                                      wr_txn.bte           == WB_LINEAR_BURST      ;
+                                      wr_txn.delay inside {[min_delay : max_delay]};
+                                     })
+         `uvm_error ("MasterWishbone/wb_master_simple_sequence", $sformatf("Write txn randomization failed times= %0d", i))
+       else 
+         `uvm_info ("MasterWishbone/wb_master_simple_sequence", $sformatf("\n%0s", wr_txn.sprint()), UVM_LOW)
+       finish_item(wr_txn);
+    end 
+
+  endtask 
+
+endclass : wb_master_const_addr_sequence
+
+//Date   : 03-01-2016
+//Author : Alex Zhang
+//Comment: Incr address mode sequence
+class wb_master_incr_addr_sequence #(
+  int WB_ADDR_W = 32,
+  int WB_DATA_W = 32,
+  int WB_TGD_W  = 8,
+  int WB_TGA_W  = 4,
+  int WB_TGC_W  = 2
+) extends wb_master_simple_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W);
+
+  typedef wb_master_incr_addr_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  this_t;
+  `uvm_object_param_utils(this_t)
+
+  function new(string name = "wb_master_incr_addr_sequence");
+    super.new(name);
+  endfunction
+
+  task body ();
+    wb_master_rw_txn_t wr_txn = wb_master_rw_txn_t::type_id::create("wr_txn");
+    for (int i=0; i< req_num ; i= i+1) begin 
+       start_item(wr_txn);
+       if (!wr_txn.randomize() with { 
+                                      wr_txn.read_or_write == WB_WRITE               ;
+                                      wr_txn.len_bursts    == 6                      ;
+                                      wr_txn.addr inside {[start_addr : end_addr]}   ;
+                                      wr_txn.cti           == WB_INCR_ADDR_CYCLE     ;
+                                      wr_txn.bte           == WB_4BEAT_WRAPPER_BURST ;
+                                      wr_txn.delay inside {[min_delay : max_delay]}  ;
+                                     })
+         `uvm_error ("MasterWishbone/wb_master_simple_sequence", $sformatf("Write txn randomization failed times= %0d", i))
+       else 
+         `uvm_info ("MasterWishbone/wb_master_simple_sequence", $sformatf("\n%0s", wr_txn.sprint()), UVM_LOW)
+       finish_item(wr_txn);
+    end 
+
+  endtask 
+
+endclass : wb_master_incr_addr_sequence
 
 `endif
