@@ -4,22 +4,28 @@
 class wishbone_test extends uvm_test;
   `uvm_component_utils(wishbone_test)
   test_env  m_env;
-  //wb_vif_t  wb_if;
-  wb_mst_simple_seq_t wb_seq;
   function new (string name = "wb_test", uvm_component parent );
     super.new(name, parent);
   endfunction 
   function void build_phase (uvm_phase phase);
     super.build_phase (phase);
     m_env = test_env::type_id::create("m_env", this);
-    wb_seq = wb_mst_simple_seq_t::type_id::create("wb_seq");
-    //uvm_config_db #(wb_vif_t)::get(this, "", "WISHBONE_IF", wb_if);
-    //if (wb_if == null)
-    //  `uvm_error("Wishbone_test", "Interface for the wb_driver is no set before use")
-    //else 
       
   endfunction 
-  task run_phase (uvm_phase phase);
+  task reset_phase (uvm_phase phase);
+    phase.raise_objection(this);
+    super.reset_phase(phase);
+
+    `uvm_info("Wishbone_test", "Wait the negedge of the RST_I", UVM_LOW)
+    @ (negedge $root.tb.wb_slv_DUT.RST_I);
+    @ (posedge $root.tb.wb_slv_DUT.RST_I);
+    #10ns;
+    phase.drop_objection(this);
+
+  endtask 
+  task main_phase (uvm_phase phase);
+    wb_mst_simple_seq_t wb_seq = wb_mst_simple_seq_t::type_id::create("wb_seq");
+
     phase.raise_objection(this);
     wb_seq.start_addr = 32'h100_0000;
     wb_seq.end_addr   = 32'h100_FFFF;
@@ -40,6 +46,30 @@ class wishbone_test extends uvm_test;
     phase.drop_objection(this);
   endtask 
 
+endclass : wishbone_test
+
+class wishbone_const_addr_test extends wishbone_test;
+  `uvm_component_utils(wishbone_const_addr_test)
+  function new (string name = "wb_test", uvm_component parent );
+    super.new(name, parent);
+  endfunction 
+  function void build_phase (uvm_phase phase);
+    super.build_phase (phase);
+    wb_mst_simple_seq_t::type_id::set_type_override(wb_mst_const_addr_seq_t::get_type());
+  endfunction
+
 endclass 
 
+
+class wishbone_incr_addr_test extends wishbone_test;
+  `uvm_component_utils(wishbone_incr_addr_test)
+  function new (string name = "wb_test", uvm_component parent );
+    super.new(name, parent);
+  endfunction 
+  function void build_phase (uvm_phase phase);
+    super.build_phase (phase);
+    wb_mst_simple_seq_t::type_id::set_type_override(wb_mst_incr_addr_seq_t::get_type());
+  endfunction
+
+endclass 
 `endif
