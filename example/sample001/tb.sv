@@ -51,7 +51,9 @@ module tb;
     .LOCK_I(wb_if.wb_lock_o),
     .RTY_O (wb_if.wb_rty_i),
     .TGA_I (wb_if.wb_tga_o), 
-    .TGC_I (wb_if.wb_tgc_o)
+    .TGC_I (wb_if.wb_tgc_o),
+    .CTI_I (wb_if.wb_cti_o),
+    .BTE_I (wb_if.wb_bte_o)
   ); 
 
   initial begin 
