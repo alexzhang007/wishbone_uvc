@@ -68,6 +68,8 @@ class wb_master_dirver #(
          wb_if.wb_tgc_o <= txn.tgc;
          wb_if.wb_tga_o <= txn.tga;
          wait (wb_if.wb_ack_i==1'b1);
+         @(posedge wb_if.wb_clk);
+         reset_wb_intf();
      end else begin 
        //Wrapper address will be back to back
        for (int i =0; i< txn.len_bursts; i= i+1) begin 
@@ -78,17 +80,35 @@ class wb_master_dirver #(
          wb_if.wb_tgd_o <= txn.tgd[i];
          wb_if.wb_cyc_o <= 1'b1   ;
          wb_if.wb_stb_o <= 1'b1   ;
-         wb_if.wb_cti_o <= txn.cti[i];
-         wb_if.wb_bte_o <= txn.bte[i];
+         wb_if.wb_cti_o <= txn.cti_bursts[i];
+         wb_if.wb_bte_o <= txn.bte ;
          wb_if.wb_we_o  <= txn.read_or_write==WB_WRITE ? 1'b1 : 1'b0 ;
          wb_if.wb_tgc_o <= txn.tgc ;
          wb_if.wb_tga_o <= txn.tga ;
          wait (wb_if.wb_ack_i==1'b1);
+         if (i>=1 )
+           @(posedge wb_if.wb_clk);
        end
-       if (txn.delay >0) 
+       @(posedge wb_if.wb_clk);
+       reset_wb_intf();
+       if (txn.delay >0) begin
          repeat (txn.delay) @(posedge wb_if.wb_clk);
+       end 
      end    
    end 
+ endtask 
+ task reset_wb_intf();
+      wb_if.wb_adr_o <= 'hx;
+      wb_if.wb_dat_o <= 'hx; 
+      wb_if.wb_sel_o <= 'hx;
+      wb_if.wb_tgd_o <= 'h0;
+      wb_if.wb_cyc_o <= 1'b0;
+      wb_if.wb_stb_o <= 1'b0;
+      wb_if.wb_cti_o <= 'hx;
+      wb_if.wb_bte_o <= 'hx;
+      wb_if.wb_we_o  <= 'hx;
+      wb_if.wb_tgc_o <= 'hx;
+      wb_if.wb_tga_o <= 'hx;
  endtask 
 endclass
 
