@@ -38,7 +38,6 @@ input [1:0]              BTE_I
 );
 
 assign ERR_O = 1'b0;
-assign DAT_O = 'h0;
 assign RTY_O = 1'b0;
 
 parameter ACK_IDLE = 1'b0,
@@ -55,7 +54,7 @@ always @(posedge CLK_I or negedge RST_I)
 always @(*)
   case (ack_cs) 
     ACK_IDLE : begin 
-                 if (WE_I & STB_I)
+                 if (STB_I)
                    ack_ns = ACK_BUSY;
                  else
                    ack_ns = ACK_IDLE;
@@ -67,5 +66,5 @@ always @(*)
     endcase
 
 assign ACK_O = ack_cs == ACK_BUSY;
-
+assign DAT_O = ack_cs == ACK_BUSY  & STB_I & ~WE_I ? $urandom : {WB_DATA_W{1'b0}};
 endmodule 
