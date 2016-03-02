@@ -56,6 +56,9 @@ class wb_master_rw_transaction#(
          data.size()       == len_bursts;
          sel.size()        == len_bursts;
          tgd.size()        == len_bursts;
+    } else if (read_or_write == WB_READ) {
+         cti_bursts.size() == len_bursts;
+         addr_bursts.size()== len_bursts;
     }
     solve read_or_write before len_bursts;
     solve read_or_write before cti_bursts;
@@ -69,7 +72,7 @@ class wb_master_rw_transaction#(
   function void post_randomize ();
     addr [2:0] = 3'b000; //Make sure the address is 8bit aligned
     begin 
-      if (read_or_write == WB_WRITE) begin
+      //if (read_or_write == WB_WRITE) begin
         if (cti == WB_CONST_ADDR_CYCLE) begin  
           for (int index =0; index < len_bursts; index = index +1) begin 
             cti_bursts [index] = WB_CONST_ADDR_CYCLE;
@@ -105,7 +108,7 @@ class wb_master_rw_transaction#(
           sel  [i] = $urandom;
           tgd  [i] = $urandom;
         end 
-      end 
+      //end 
     end 
 
   endfunction

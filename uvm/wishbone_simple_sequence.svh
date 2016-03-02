@@ -142,4 +142,58 @@ class wb_master_incr_addr_sequence #(
 
 endclass : wb_master_incr_addr_sequence
 
+//Date   : 03-02-2016
+//Author : Alex Zhang
+//Comment: Linear read address mode read sequence
+class wb_master_linear_read_sequence #(
+  int WB_ADDR_W = 32,
+  int WB_DATA_W = 32,
+  int WB_TGD_W  = 8,
+  int WB_TGA_W  = 4,
+  int WB_TGC_W  = 2
+) extends wb_master_simple_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W);
+  typedef wb_master_linear_read_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) wb_master_linear_read_seq_t;
+  typedef wb_master_rw_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  wb_master_rw_txn_t;
+  `uvm_object_param_utils(wb_master_linear_read_seq_t)
+  //Group    : Variables
+  //Variable : start_addr
+  //Specifies the start address for the master Read/Write transaction
+  //Default  : 0 
+  bit [WB_ADDR_W-1:0] start_addr = 0;
+  //Group    : Variables
+  //Variable : start_addr
+  //Specifies the start address for the master Read/Write transaction
+  //Default  : 0 
+  bit [WB_ADDR_W-1:0] end_addr = 0;
+
+  int max_delay = 0; //Request delay cycles
+  int min_delay = 0; //Request delay cycles
+  int req_num   = 0; //Not including the wrapped number
+  function new (string name = "wb_master_linear_read_sequence");
+    super.new(name);
+  endfunction 
+
+  virtual task body();
+    wb_master_rw_txn_t wr_txn = wb_master_rw_txn_t::type_id::create("wr_txn");
+    
+    for (int i=0; i< req_num ; i= i+1) begin 
+       start_item(wr_txn);
+       if (!wr_txn.randomize() with { 
+                                      wr_txn.read_or_write == WB_READ              ;
+                                      wr_txn.len_bursts    == 1                    ;
+                                      wr_txn.addr inside {[start_addr : end_addr]} ;
+                                      wr_txn.cti           == WB_CLASSIC_CYCLE     ;
+                                      wr_txn.bte           == WB_LINEAR_BURST      ;
+                                      wr_txn.delay inside {[min_delay : max_delay]};
+                                     })
+         `uvm_error ("MasterWishbone/wb_master_simple_sequence", $sformatf("Write txn randomization failed times= %0d", i))
+       else 
+         `uvm_info ("MasterWishbone/wb_master_simple_sequence", $sformatf("\n%0s", wr_txn.sprint()), UVM_LOW)
+       finish_item(wr_txn);
+    end 
+
+  endtask
+endclass : wb_master_linear_read_sequence
+
+
 `endif
