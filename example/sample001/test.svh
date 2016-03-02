@@ -72,4 +72,39 @@ class wishbone_incr_addr_test extends wishbone_test;
   endfunction
 
 endclass 
+
+class wishbone_linear_read_test extends wishbone_test;
+  `uvm_component_utils(wishbone_linear_read_test)
+  function new (string name = "wb_test", uvm_component parent );
+    super.new(name, parent);
+  endfunction 
+  function void build_phase (uvm_phase phase);
+    super.build_phase (phase);
+//    wb_mst_simple_seq_t::type_id::set_type_override(wb_mst_linear_rd_seq_t::get_type());
+  endfunction
+
+  task main_phase (uvm_phase phase);
+    wb_mst_linear_rd_seq_t wb_seq = wb_mst_linear_rd_seq_t::type_id::create("wb_seq");
+
+    phase.raise_objection(this);
+    wb_seq.start_addr = 32'h100_0000;
+    wb_seq.end_addr   = 32'h100_FFFF;
+    wb_seq.req_num    = 10;
+    wb_seq.max_delay  = 10;
+    wb_seq.min_delay  = 1;
+
+    fork 
+       begin 
+         wb_seq.start(m_env.mst_agent.mst_sqr);
+       end 
+       begin 
+         #1ms;
+       end 
+    join 
+
+
+    phase.drop_objection(this);
+  endtask 
+
+endclass 
 `endif
