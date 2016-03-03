@@ -195,5 +195,38 @@ class wb_master_linear_read_sequence #(
   endtask
 endclass : wb_master_linear_read_sequence
 
+class wb_slave_simple_sequence #(
+  int WB_ADDR_W = 32,
+  int WB_DATA_W = 32,
+  int WB_TGD_W  = 8,
+  int WB_TGA_W  = 4,
+  int WB_TGC_W  = 2
+) extends uvm_sequence #(wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W));
 
+  typedef wb_slave_simple_sequence#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) this_t;
+  typedef wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) txn_t;
+  typedef wb_cfg #(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) wb_cfg_t;
+  `uvm_object_param_utils(this_t)
+ 
+  wb_cfg_t cfg;  
+  txn_t    slv_txn;
+
+  function new(string name="wb_slave_simple_sequence");
+    super.new(name);
+  endfunction 
+
+  task body();
+    if (cfg==null)
+       `uvm_error("wb_slave_simple_sequence", "CFG is not set")
+    forever begin  //FIX, it might stay here
+      if ( !cfg.is_empty() ) begin 
+        slv_txn = cfg.get_rsp();
+        start_item(slv_txn);
+        finish_item(slv_txn);
+      end 
+    end 
+
+  endtask
+
+endclass
 `endif
