@@ -11,14 +11,14 @@
 // (begin source code)
 `ifndef WISHBONE_DRIVER__SVH
 `define WISHBONE_DRIVER__SVH
-class wb_master_dirver #(
+class wb_master_driver #(
   int WB_ADDR_W = 32,
   int WB_DATA_W = 32,
   int WB_TGD_W  = 8,
   int WB_TGA_W  = 4,
   int WB_TGC_W  = 2
 )extends uvm_driver#(wb_master_rw_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W));
-  typedef wb_master_dirver#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) wb_master_driver_t;
+  typedef wb_master_driver#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) wb_master_driver_t;
   `uvm_component_param_utils(wb_master_driver_t)
  
  typedef wb_master_rw_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  wb_master_txn_t;
@@ -110,6 +110,65 @@ class wb_master_dirver #(
       wb_if.wb_tgc_o <= 'hx;
       wb_if.wb_tga_o <= 'hx;
  endtask 
-endclass
+endclass : wb_master_driver
+
+class wb_slave_driver #(
+  int WB_ADDR_W = 32,
+  int WB_DATA_W = 32,
+  int WB_TGD_W  = 8,
+  int WB_TGA_W  = 4,
+  int WB_TGC_W  = 2
+)extends uvm_driver#(wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W));
+  typedef wb_slave_driver#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) this_t;
+  `uvm_component_param_utils(this_t)
+ 
+ typedef wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  wb_slave_txn_t;
+ typedef virtual ovi_wishbone #(
+   .WB_ADDR_W (WB_ADDR_W),
+   .WB_DATA_W (WB_DATA_W),
+   .WB_TGD_W  (WB_TGD_W ),
+   .WB_TGA_W  (WB_TGA_W ),
+   .WB_TGC_W  (WB_TGC_W )
+ ) wb_vif_t;
+ wb_vif_t  wb_if;
+ function new (string name, uvm_component parent);
+   super.new(name, parent);
+ endfunction 
+ 
+ function void build_phase (uvm_phase phase);
+   super.build_phase (phase);
+   uvm_config_db #(wb_vif_t)::get(this, "", "WISHBONE_IF", wb_if);
+   if (wb_if == null)
+     `uvm_error("Wishbone Slave Driver", "Interface for the wb_driver is no set before use")
+
+ endfunction 
+ 
+ task run_phase (uvm_phase phase);
+   forever begin 
+     seq_item_port.get_next_item(req);
+     send (req);
+     seq_item_port.item_done();
+   end 
+ endtask
+
+ task  send (wb_slave_txn_t txn);
+   begin 
+         wb_if.wb_dat_o <= txn.typ == WB_READ ? txn.data : 'hx; 
+         wb_if.wb_tgd_o <= txn.typ == WB_READ ? txn.tgd  : 'hx; 
+         wb_if.wb_err_o <= txn.typ == WB_READ ? txn.err  : 1'b0;
+         wb_if.wb_rty_o <= txn.typ == WB_READ ? txn.rty  : 1'b0;
+         wb_if.wb_ack_o <= 1'b1;
+         @(posedge wb_if.wb_clk);
+         reset_wb_intf();
+   end 
+ endtask 
+ task reset_wb_intf();
+      wb_if.wb_dat_o <= 'hx; 
+      wb_if.wb_tgd_o <= 'h0;
+      wb_if.wb_err_o <= 1'b0;
+      wb_if.wb_rty_o <= 1'b0;
+      wb_if.wb_ack_o <= 1'b0;
+ endtask 
+endclass : wb_master_driver
 
 `endif
