@@ -19,11 +19,13 @@ package wishbone_pkg;
 
   `include "wishbone_slave_sequence_items.svh"
 
-  `include "wishbone_simple_sequence.svh"
-  
   `include "wishbone_cfg.svh"
 
+  `include "wishbone_simple_sequence.svh"
+
   `include "wishbone_driver.svh"
+  
+  `include "wishbone_monitor.svh"
 
   `include "wishbone_sequencer.svh"
   

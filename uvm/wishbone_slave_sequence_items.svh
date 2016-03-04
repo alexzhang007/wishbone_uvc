@@ -30,7 +30,7 @@ class wb_slave_rsp_transaction#(
     `uvm_field_int(err, UVM_DEFAULT)
     `uvm_field_int(rty, UVM_DEFAULT)
     `uvm_field_enum(wb_rw_e, typ, UVM_DEFAULT)
-  `uvm_object_param_end
+  `uvm_object_utils_end
 
 
 endclass  : wb_slave_rsp_transaction

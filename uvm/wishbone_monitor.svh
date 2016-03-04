@@ -34,6 +34,9 @@ class wb_slave_monitor #(
   wb_vif_t  wb_if;
   wb_cfg_t  cfg;  
   txn_t     rsp_txn;
+  function new(string name= "wb_slave_monitor", uvm_component parent);
+    super.new(name, parent);
+  endfunction
   function void build_phase (uvm_phase phase);
    super.build_phase (phase);
    uvm_config_db #(wb_vif_t)::get(this, "", "WISHBONE_IF", wb_if);
@@ -45,7 +48,7 @@ class wb_slave_monitor #(
      forever begin 
        @(posedge wb_if.wb_clk);
        if (wb_if.wb_stb_i) begin 
-         if (wb_if.we_i == 1'b0) begin  //Write
+         if (wb_if.wb_we_i == 1'b0) begin  //Write
            cfg.backdoor_write(wb_if.wb_adr_i, wb_if.wb_dat_i);
            rsp_txn = txn_t::type_id::create("rsp_txn");
            rsp_txn.typ = WB_WRITE;
@@ -60,10 +63,7 @@ class wb_slave_monitor #(
      end 
 
   endtask 
-   
-
-
-endfunction
+endclass
 
 `endif
 

@@ -169,6 +169,6 @@ class wb_slave_driver #(
       wb_if.wb_rty_o <= 1'b0;
       wb_if.wb_ack_o <= 1'b0;
  endtask 
-endclass : wb_master_driver
+endclass : wb_slave_driver
 
 `endif
