@@ -20,6 +20,14 @@ module tb;
     wb_resetn = 1'b0;
     #50ns;
     wb_resetn = 1'b1;
+    #100us;
+    reg_addr  = 'h200_1000;
+    reg_ctrl  = {'h3,10'ha, 1'b0,2'b0, 3'b0};
+    #1us;
+    start_req = 1'b1;
+    #200us;
+    start_req = 1'b0;
+   
   end 
   ovi_wishbone #(
    .WB_ADDR_W(OVI_WB_ADDR_W),
@@ -32,13 +40,13 @@ module tb;
    .wb_resetn (wb_resetn)
   );
    
-  wishbone_slave #(
+  wishbone_master #(
    .WB_ADDR_W(OVI_WB_ADDR_W),
    .WB_DATA_W(OVI_WB_DATA_W),
    .WB_TGD_W (OVI_WB_TGD_W ),
    .WB_TGA_W (OVI_WB_TGA_W ),
    .WB_TGC_W (OVI_WB_TGC_W )
-  ) wb_slv_DUT (
+  ) wb_mst_DUT (
     .CLK_I (wb_if.wb_clk),
     .RST_I (wb_if.wb_resetn),
     .DAT_I (wb_if.wb_dat_o),

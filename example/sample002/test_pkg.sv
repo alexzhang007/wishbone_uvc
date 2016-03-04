@@ -17,7 +17,7 @@ package test_pkg;
     .WB_TGD_W  (OVI_WB_TGD_W ),
     .WB_TGA_W  (OVI_WB_TGA_W ),
     .WB_TGC_W  (OVI_WB_TGC_W )
-   ) wb_slv_simple_eq_t;
+   ) wb_slv_simple_seq_t;
 
   typedef wb_cfg #(
     .WB_ADDR_W (OVI_WB_ADDR_W),

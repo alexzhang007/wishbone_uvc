@@ -12,6 +12,9 @@ class wishbone_test extends uvm_test;
     super.build_phase (phase);
     m_env = test_env::type_id::create("m_env", this);
     m_cfg = wb_cfg_t::type_id::create("m_cfg");
+  endfunction 
+  function void connect_phase (uvm_phase phase);
+    super.connect_phase(phase);
     m_env.slv_agent.slv_mon.cfg = m_cfg;
   endfunction 
   task reset_phase (uvm_phase phase);
@@ -19,14 +22,15 @@ class wishbone_test extends uvm_test;
     super.reset_phase(phase);
 
     `uvm_info("Wishbone_test", "Wait the negedge of the RST_I", UVM_LOW)
-    @ (negedge $root.tb.wb_slv_DUT.RST_I);
-    @ (posedge $root.tb.wb_slv_DUT.RST_I);
+    @ (negedge $root.tb.wb_mst_DUT.RST_I);
+    @ (posedge $root.tb.wb_mst_DUT.RST_I);
     #10ns;
     phase.drop_objection(this);
 
   endtask 
   task main_phase (uvm_phase phase);
     wb_slv_simple_seq_t wb_slv_seq = wb_slv_simple_seq_t::type_id::create("wb_slv_seq");
+    wb_slv_seq.cfg = m_cfg;
 
     phase.raise_objection(this);
 
