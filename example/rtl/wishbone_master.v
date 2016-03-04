@@ -123,7 +123,7 @@ always @(posedge CLK_I or negedge RST_I)
     req_count <= 0;
     req_addr_next <= reg_addr;
   end else begin
-    req_count     <= ((req_cs == REQ_SEND) & ACK_I ) ?req_count + 1'b1 ? req_count;
+    req_count     <= ((req_cs == REQ_SEND) & ACK_I ) ?req_count + 1'b1 : req_count;
     req_addr_next <= (cti == CTI_CONST_ADDR ) ? req_addr_next  : 
                      (cti == CTI_INCR_ADDR   && bte == BTE_LINEAR_BURST) ? req_addr_next + req_count << 2 :
                      (cti == CTI_INCR_ADDR   && bte == BTE_4BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
@@ -143,11 +143,10 @@ assign TGD_O   = ~WE_O ? $urandom : {'h0};
 assign LOCK_O  = 1'b0;
 assign TGC_O   = 2;  //Fixed value
 assign BTE_O   = bte;
-assign CTI_O   = ((cti == CTI_CONST_ADDR)&&(req_count==(req_num-1)) ? CTI_END_OF_BURST : 
-                 ((cti == CTI_INCR_ADDR )&&(bti==BTE_4BEAT_WRAP_BURST)&&(req_count%4==3)) ? CTI_END_OF_BURST :
-                 ((cti == CTI_INCR_ADDR )&&(bti==BTE_8BEAT_WRAP_BURST)&&(req_count%8==7)) ? CTI_END_OF_BURST :
-                 ((cti == CTI_INCR_ADDR )&&(bti==BTE_16BEAT_WRAP_BURST)&&(req_count%16==15)) ? CTI_END_OF_BURST :
-                 cti ;
+assign CTI_O   = ((cti == CTI_CONST_ADDR)&&(req_count==(req_num-1)))                         ? CTI_END_OF_BURST : 
+                 ((cti == CTI_INCR_ADDR )&&(bte==BTE_4BEAT_WRAP_BURST)&&(req_count%4==3))    ? CTI_END_OF_BURST :
+                 ((cti == CTI_INCR_ADDR )&&(bte==BTE_8BEAT_WRAP_BURST)&&(req_count%8==7))    ? CTI_END_OF_BURST :
+                 ((cti == CTI_INCR_ADDR )&&(bte==BTE_16BEAT_WRAP_BURST)&&(req_count%16==15)) ? CTI_END_OF_BURST :  cti ;
 
 endmodule 
 
