@@ -16,14 +16,15 @@ module tb;
 
   initial begin 
     wb_resetn = 1'b1;
+    start_req = 1'b0;
+    reg_addr  = 'h200_1000;
+    reg_ctrl  = {'h3,10'ha, 1'b0,2'b0, 3'b0};
     #100ns;
     wb_resetn = 1'b0;
     #50ns;
     wb_resetn = 1'b1;
     #100us;
-    reg_addr  = 'h200_1000;
-    reg_ctrl  = {'h3,10'ha, 1'b0,2'b0, 3'b0};
-    #1us;
+    //Reset is done
     start_req = 1'b1;
     #200us;
     start_req = 1'b0;
@@ -72,7 +73,7 @@ module tb;
 
   initial begin 
     $timeformat(-9, 1, "ns", 12);
-    uvm_config_db #(wb_vif_t) ::set(null, "uvm_test_top.*", "WISHBONE_IF", wb_if); 
+    uvm_config_db #(wb_vif_t) ::set(null, "uvm_test_top*", "WISHBONE_IF", wb_if); 
     run_test();
   end 
 
