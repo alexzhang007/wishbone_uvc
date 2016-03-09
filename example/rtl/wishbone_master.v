@@ -101,16 +101,22 @@ always @(*)
                 end 
     REQ_SEND :  begin 
                   if (ACK_I)
-                    req_ns = REQ_WAIT;
+                    req_ns = REQ_ACK;
                   else 
                     req_ns = REQ_SEND;  
                 end 
     REQ_WAIT  : begin 
-                  if (pending )
-                    req_ns = REQ_SEND;
+                  if (ACK_I )
+                    req_ns = REQ_ACK;
                   else 
                     req_ns = REQ_WAIT;
                 end 
+    REQ_ACK   : begin 
+                  if (pending) 
+                    req_ns = REQ_SEND;
+                  else 
+                    req_ns = REQ_IDLE;
+    end 
     default   : begin 
                   req_ns  = REQ_IDLE;
                 end
@@ -123,19 +129,20 @@ always @(posedge CLK_I or negedge RST_I)
     req_count <= 0;
     req_addr_next <= reg_addr;
   end else begin
-    req_count     <= ((req_cs == REQ_SEND) & ACK_I ) ?req_count + 1'b1 : req_count;
+    req_count     <= ( STB_O & ACK_I ) ?req_count + 1'b1 : req_count;
     req_addr_next <= (cti == CTI_CONST_ADDR ) ? req_addr_next  : 
+                     (cti == CTI_CLASSIC)     ? req_addr_next + req_count << 2 :
                      (cti == CTI_INCR_ADDR   && bte == BTE_LINEAR_BURST) ? req_addr_next + req_count << 2 :
                      (cti == CTI_INCR_ADDR   && bte == BTE_4BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
                      (cti == CTI_INCR_ADDR   && bte == BTE_8BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
                      (cti == CTI_INCR_ADDR   && bte == BTE_16BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 : 
-                     {$urandom, 2'b00};
+                     req_addr_next ;
   end 
 
 assign pending = req_count < req_num;
-assign ADR_O   = req_addr_next;
+assign ADR_O   = req_cs ==REQ_SEND ? req_addr_next  : ADR_O;
 assign WE_O    = req_type;
-assign STB_O   = req_cs == REQ_SEND;
+assign STB_O   = req_cs ==REQ_SEND ? 1'b1 : 1'b0;
 assign CYC_O   = STB_O;
 assign DAT_O   = ~WE_O ? $urandom : {WB_DATA_W{1'b0}};
 assign SEL_O   = ~WE_O ? $urandom : {'h0}; 
