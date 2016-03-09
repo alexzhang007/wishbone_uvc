@@ -142,13 +142,25 @@ class wb_slave_driver #(
      `uvm_error("Wishbone Slave Driver", "Interface for the wb_driver is no set before use")
 
  endfunction 
- 
+ task reset_phase (uvm_phase phase);
+   reset_wb_intf();
+ endtask 
+
  task run_phase (uvm_phase phase);
+   int ack_min, ack_max, ack_cycle;
+   ack_min = wb_if.get_slave_ack_min_delay();
+   ack_max = wb_if.get_slave_ack_max_delay();
+   ack_cycle = 1;//$urandom ;
+   fork 
    forever begin 
      seq_item_port.get_next_item(req);
      send (req);
      seq_item_port.item_done();
    end 
+   forever begin 
+     send_ack ();
+   end 
+   join
  endtask
 
  task  send (wb_slave_txn_t txn);
@@ -157,7 +169,6 @@ class wb_slave_driver #(
          wb_if.wb_tgd_o <= txn.typ == WB_READ ? txn.tgd  : 'hx; 
          wb_if.wb_err_o <= txn.typ == WB_READ ? txn.err  : 1'b0;
          wb_if.wb_rty_o <= txn.typ == WB_READ ? txn.rty  : 1'b0;
-         wb_if.wb_ack_o <= 1'b1;
          @(posedge wb_if.wb_clk);
          reset_wb_intf();
    end 
@@ -169,6 +180,18 @@ class wb_slave_driver #(
       wb_if.wb_rty_o <= 1'b0;
       wb_if.wb_ack_o <= 1'b0;
  endtask 
+ task send_ack();
+         @(posedge wb_if.wb_clk);
+         if (wb_if.wb_stb_i == 1'b1) begin
+           if (ack_cycle > 1)
+             repeat (ack_cycle-1) @(posedge wb_if.wb_clk);
+           wb_if.wb_ack_o <= 1'b1;
+           @(posedge wb_if.wb_clk);
+           wb_if.wb_ack_o <= 1'b0;
+         end 
+    
+
+ endtask
 endclass : wb_slave_driver
 
 `endif
