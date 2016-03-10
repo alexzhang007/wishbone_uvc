@@ -130,12 +130,12 @@ always @(posedge CLK_I or negedge RST_I)
     req_addr_next <= reg_addr;
   end else begin
     req_count     <= ( STB_O & ACK_I ) ?req_count + 1'b1 : req_count;
-    req_addr_next <= (cti == CTI_CONST_ADDR ) ? req_addr_next  : 
-                     (cti == CTI_CLASSIC)     ? req_addr_next + req_count << 2 :
-                     (cti == CTI_INCR_ADDR   && bte == BTE_LINEAR_BURST) ? req_addr_next + req_count << 2 :
-                     (cti == CTI_INCR_ADDR   && bte == BTE_4BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
-                     (cti == CTI_INCR_ADDR   && bte == BTE_8BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
-                     (cti == CTI_INCR_ADDR   && bte == BTE_16BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 : 
+    req_addr_next <= ( STB_O && ACK_I & cti == CTI_CONST_ADDR ) ? req_addr_next  : 
+                     ( STB_O && ACK_I & cti == CTI_CLASSIC)     ? req_addr_next + req_count << 2 :
+                     ( STB_O && ACK_I & cti == CTI_INCR_ADDR   && bte == BTE_LINEAR_BURST) ? req_addr_next + req_count << 2 :
+                     ( STB_O && ACK_I & cti == CTI_INCR_ADDR   && bte == BTE_4BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
+                     ( STB_O && ACK_I & cti == CTI_INCR_ADDR   && bte == BTE_8BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 :
+                     ( STB_O && ACK_I & cti == CTI_INCR_ADDR   && bte == BTE_16BEAT_WRAP_BURST) ? req_addr_next + (req_count %4 ) << 2 : 
                      req_addr_next ;
   end 
 
@@ -144,9 +144,9 @@ assign ADR_O   = req_cs ==REQ_SEND ? req_addr_next  : ADR_O;
 assign WE_O    = req_type;
 assign STB_O   = req_cs ==REQ_SEND ? 1'b1 : 1'b0;
 assign CYC_O   = STB_O;
-assign DAT_O   = ~WE_O ? $urandom : {WB_DATA_W{1'b0}};
-assign SEL_O   = ~WE_O ? $urandom : {'h0}; 
-assign TGD_O   = ~WE_O ? $urandom : {'h0};
+assign DAT_O   = WE_O ? $urandom : {WB_DATA_W{1'b0}};
+assign SEL_O   = WE_O ? $urandom : {'h0}; 
+assign TGD_O   = WE_O ? $urandom : {'h0};
 assign LOCK_O  = 1'b0;
 assign TGC_O   = 2;  //Fixed value
 assign BTE_O   = bte;
