@@ -121,7 +121,7 @@ class wb_slave_driver #(
 )extends uvm_driver#(wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W));
   typedef wb_slave_driver#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) this_t;
   `uvm_component_param_utils(this_t)
- 
+ typedef wb_cfg #(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W) wb_cfg_t;
  typedef wb_slave_rsp_transaction#(WB_ADDR_W, WB_DATA_W, WB_TGD_W, WB_TGA_W, WB_TGC_W)  wb_slave_txn_t;
  typedef virtual ovi_wishbone #(
    .WB_ADDR_W (WB_ADDR_W),
@@ -131,6 +131,9 @@ class wb_slave_driver #(
    .WB_TGC_W  (WB_TGC_W )
  ) wb_vif_t;
  wb_vif_t  wb_if;
+ wb_cfg_t  cfg; 
+ int ack_min, ack_max, ack_cycle;
+ wb_slave_txn_t  rsp_txn;
  function new (string name, uvm_component parent);
    super.new(name, parent);
  endfunction 
@@ -147,28 +150,25 @@ class wb_slave_driver #(
  endtask 
 
  task run_phase (uvm_phase phase);
-   int ack_min, ack_max, ack_cycle;
    ack_min = wb_if.get_slave_ack_min_delay();
    ack_max = wb_if.get_slave_ack_max_delay();
    ack_cycle = 1;//$urandom ;
    fork 
-   forever begin 
-     seq_item_port.get_next_item(req);
-     send (req);
-     seq_item_port.item_done();
-   end 
-   forever begin 
-     send_ack ();
-   end 
-   join
+     forever get_rsp ();
+     forever send_ack ();
+   join_none
  endtask
 
- task  send (wb_slave_txn_t txn);
+ task  get_rsp ();
    begin 
-         wb_if.wb_dat_o <= txn.typ == WB_READ ? txn.data : 'hx; 
-         wb_if.wb_tgd_o <= txn.typ == WB_READ ? txn.tgd  : 'hx; 
-         wb_if.wb_err_o <= txn.typ == WB_READ ? txn.err  : 1'b0;
-         wb_if.wb_rty_o <= txn.typ == WB_READ ? txn.rty  : 1'b0;
+         if (~cfg.is_empty() ) begin 
+           rsp_txn = cfg.get_rsp();
+           `uvm_info("GET_RSP", $sformatf("Send the Rsp:%0s", rsp_txn.sprint()), UVM_LOW)
+           wb_if.wb_dat_o <= rsp_txn.typ == WB_READ ? rsp_txn.data : 'hx; 
+           wb_if.wb_tgd_o <= rsp_txn.typ == WB_READ ? rsp_txn.tgd  : 'hx; 
+           wb_if.wb_err_o <= rsp_txn.typ == WB_READ ? rsp_txn.err  : 1'b0;
+           wb_if.wb_rty_o <= rsp_txn.typ == WB_READ ? rsp_txn.rty  : 1'b0;
+         end 
          @(posedge wb_if.wb_clk);
          reset_wb_intf();
    end 
@@ -186,6 +186,7 @@ class wb_slave_driver #(
            if (ack_cycle > 1)
              repeat (ack_cycle-1) @(posedge wb_if.wb_clk);
            wb_if.wb_ack_o <= 1'b1;
+           `uvm_info("SEND_ACK", "Send the ack", UVM_LOW)
            @(posedge wb_if.wb_clk);
            wb_if.wb_ack_o <= 1'b0;
          end 

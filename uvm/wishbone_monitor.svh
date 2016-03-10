@@ -34,8 +34,10 @@ class wb_slave_monitor #(
   wb_vif_t  wb_if;
   wb_cfg_t  cfg;  
   txn_t     rsp_txn;
+  bit       pushed;
   function new(string name= "wb_slave_monitor", uvm_component parent);
     super.new(name, parent);
+    pushed = 1'b0;
   endfunction
   function void build_phase (uvm_phase phase);
    super.build_phase (phase);
@@ -48,16 +50,28 @@ class wb_slave_monitor #(
      forever begin 
        @(posedge wb_if.wb_clk);
        if (wb_if.wb_stb_i) begin 
-         if (wb_if.wb_we_i == 1'b0) begin  //Write
+         if (wb_if.wb_we_i == 1'b1) begin  //Write
            cfg.backdoor_write(wb_if.wb_adr_i, wb_if.wb_dat_i);
            rsp_txn = txn_t::type_id::create("rsp_txn");
            rsp_txn.typ = WB_WRITE;
-           cfg.fill_rsp(rsp_txn);
+           if (~pushed ) begin 
+             cfg.fill_rsp(rsp_txn);
+             pushed = 1'b1;
+           end
+           if (wb_if.wb_ack_o) 
+             pushed = 1'b0;
          end else begin 
            rsp_txn = txn_t::type_id::create("rsp_txn");
            rsp_txn.typ = WB_READ;
-           rsp_txn.data = cfg.backdoor_read(wb_if.wb_adr_i);
-           cfg.fill_rsp(rsp_txn);
+           rsp_txn.data = $urandom;//cfg.backdoor_read(wb_if.wb_adr_i);
+           if (~pushed ) begin
+             cfg.fill_rsp(rsp_txn);
+             pushed = 1'b1;
+             `uvm_info("SLV_MON", $sformatf("Pushed = 1'b1,\n %s ", rsp_txn.sprint()), UVM_LOW)
+           end 
+           if (wb_if.wb_ack_o) 
+             pushed = 1'b0;
+             `uvm_info("SLV_MON", "Pushed = 1'b0", UVM_LOW)
          end  
        end 
      end 
