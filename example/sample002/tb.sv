@@ -18,7 +18,7 @@ module tb;
     wb_resetn = 1'b1;
     start_req = 1'b0;
     reg_addr  = 'h200_1000;
-    reg_ctrl  = {'h3,10'ha, 1'b0,2'b0, 3'b0};
+    reg_ctrl  = {'h3,10'ha, 1'b0,2'b0, 3'b10};
     #100ns;
     wb_resetn = 1'b0;
     #50ns;

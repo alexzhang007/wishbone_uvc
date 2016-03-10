@@ -21,6 +21,7 @@ class wishbone_test extends uvm_test;
   function void connect_phase (uvm_phase phase);
     super.connect_phase(phase);
     m_env.slv_agent.slv_mon.cfg = m_cfg;
+    m_env.slv_agent.slv_drv.cfg = m_cfg;
   endfunction 
   task reset_phase (uvm_phase phase);
     phase.raise_objection(this);
@@ -42,7 +43,7 @@ class wishbone_test extends uvm_test;
     fork 
        wb_slv_seq.start(m_env.slv_agent.slv_sqr);
     join_none
-         #1ms;
+    #1ms;
 
 
     phase.drop_objection(this);
