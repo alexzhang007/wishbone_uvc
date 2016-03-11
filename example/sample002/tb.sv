@@ -26,7 +26,16 @@ module tb;
     #100us;
     //Reset is done
     start_req = 1'b1;
-    #200us;
+    #10ns;
+    start_req = 1'b0;
+ 
+
+    #100us; 
+    //Write
+    reg_ctrl  = {'h3,10'ha, 1'b1,2'b0, 3'b10};
+    #1us;
+    start_req = 1'b1;
+    #10ns;
     start_req = 1'b0;
    
   end 
