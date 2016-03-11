@@ -152,10 +152,10 @@ class wb_slave_driver #(
  task run_phase (uvm_phase phase);
    ack_min = wb_if.get_slave_ack_min_delay();
    ack_max = wb_if.get_slave_ack_max_delay();
-   ack_cycle = 1;//$urandom ;
+   ack_cycle = $urandom_range(ack_min,ack_max);
+   `uvm_info("SLV_DRIVER", $sformatf("ACK delay= %0d", ack_cycle), UVM_LOW)
    fork 
      forever get_rsp ();
-     forever send_ack ();
    join_none
  endtask
 
@@ -164,10 +164,13 @@ class wb_slave_driver #(
          if (~cfg.is_empty() ) begin 
            rsp_txn = cfg.get_rsp();
            `uvm_info("GET_RSP", $sformatf("Send the Rsp:%0s", rsp_txn.sprint()), UVM_LOW)
+           if (ack_cycle > 1) 
+             repeat (ack_cycle-1) @(posedge wb_if.wb_clk);
            wb_if.wb_dat_o <= rsp_txn.typ == WB_READ ? rsp_txn.data : 'hx; 
            wb_if.wb_tgd_o <= rsp_txn.typ == WB_READ ? rsp_txn.tgd  : 'hx; 
            wb_if.wb_err_o <= rsp_txn.typ == WB_READ ? rsp_txn.err  : 1'b0;
            wb_if.wb_rty_o <= rsp_txn.typ == WB_READ ? rsp_txn.rty  : 1'b0;
+           wb_if.wb_ack_o <= 1'b1;
          end 
          @(posedge wb_if.wb_clk);
          reset_wb_intf();
@@ -180,19 +183,6 @@ class wb_slave_driver #(
       wb_if.wb_rty_o <= 1'b0;
       wb_if.wb_ack_o <= 1'b0;
  endtask 
- task send_ack();
-         @(posedge wb_if.wb_clk);
-         if (wb_if.wb_stb_i == 1'b1) begin
-           if (ack_cycle > 1)
-             repeat (ack_cycle-1) @(posedge wb_if.wb_clk);
-           wb_if.wb_ack_o <= 1'b1;
-           `uvm_info("SEND_ACK", "Send the ack", UVM_LOW)
-           @(posedge wb_if.wb_clk);
-           wb_if.wb_ack_o <= 1'b0;
-         end 
-    
-
- endtask
 endclass : wb_slave_driver
 
 `endif

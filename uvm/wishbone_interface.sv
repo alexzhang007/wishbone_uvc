@@ -56,8 +56,8 @@ interface ovi_wishbone #(
   logic [2:0]             wb_cti_i;
   logic [1:0]             wb_bte_i;
   
-  int ack_cycle_min;
-  int ack_cycle_max;  
+  int ack_cycle_min = 1;
+  int ack_cycle_max = 1;  
 
 function void set_slave_ack_delay(int ack_min, int ack_max);
   ack_cycle_min = ack_min;
